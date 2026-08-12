@@ -485,6 +485,7 @@ select.input, .form-group select {
 .upload-box.has-file { border-style:solid; padding:calc(var(--sp-3) + 34px) var(--sp-4) var(--sp-4); background-color:var(--surface); min-height:0; align-items:center; justify-content:center; }
 .upload-box-tools { position:absolute; top:var(--sp-3); right:var(--sp-3); display:flex; gap:6px; z-index:1; }
 .upload-box-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; width:100%; text-align:center; margin:0 auto; }
+.upload-box-empty[hidden] { display:none; }
 .upload-box-title { color:var(--accent-ink); font-weight:700; font-size:var(--fs-lg); }
 .upload-box-sub { color:var(--ink-3); font-size:var(--fs-base); margin-bottom:var(--sp-2); }
 .upload-box-actions { display:flex; align-items:center; justify-content:center; gap:var(--sp-2); margin:var(--sp-1) auto 0; width:100%; }
@@ -494,6 +495,7 @@ select.input, .form-group select {
    confirmation, matching the centered layout used elsewhere for attached-file previews. */
 .file-thumb { display:flex; flex-direction:column; align-items:center; gap:var(--sp-2); width:100%; }
 .file-thumb[hidden] { display:none; }
+.file-thumb-text { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2); font-size:var(--fs-sm); font-weight:600; text-align:center; }
 .file-thumb-card {
   position:relative; width:auto; max-width:100%; flex-shrink:0; margin:0 auto;
   border:1px solid color-mix(in srgb,var(--st-good) 35%, var(--border));
@@ -2752,16 +2754,13 @@ async function renderThumbs(key) {
   if (empty) empty.hidden = true;
   if (box)   box.classList.add('has-file');
 
-  /* Compact "Uploaded" status — no filename shown by default; hover (desktop) or tap
-     (opens the preview modal, which captions the filename) reveals which file it is. */
+  /* Plain filename text — no card/checkmark, since the peek (eye) button already
+     lets people view the attached file(s). */
   if (thumbs) {
     thumbs.hidden = false;
-    const label = list.length === 1 ? 'Uploaded' : `${list.length} files uploaded`;
+    const label = list.length === 1 ? list[0].name : `${list.length} files attached`;
     const titleAttr = list.map(f => f.name).join(', ');
-    thumbs.innerHTML = `<div class="file-thumb-card" role="button" tabindex="0"
-                   onclick="peekFiles('${esc(key)}')" title="${esc(titleAttr)}">
-                ${icon('i-check')}<span>${esc(label)}</span>
-              </div>`;
+    thumbs.innerHTML = `<span class="file-thumb-text" title="${esc(titleAttr)}">${esc(label)}</span>`;
   }
 }
 
