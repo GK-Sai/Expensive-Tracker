@@ -482,23 +482,28 @@ select.input, .form-group select {
   transition:border-color var(--dur), background-color var(--dur);
 }
 .upload-box.drag-active { border-color:var(--accent); background-color:var(--accent-soft); }
-.upload-box.has-file { border-style:solid; padding:calc(var(--sp-3) + 34px) var(--sp-4) var(--sp-4); background-color:var(--surface); min-height:0; align-items:stretch; justify-content:flex-start; }
+.upload-box.has-file { border-style:solid; padding:calc(var(--sp-3) + 34px) var(--sp-4) var(--sp-4); background-color:var(--surface); min-height:0; align-items:center; justify-content:center; }
 .upload-box-tools { position:absolute; top:var(--sp-3); right:var(--sp-3); display:flex; gap:6px; z-index:1; }
-.upload-box-empty { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; }
+.upload-box-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; width:100%; text-align:center; margin:0 auto; }
+.upload-box-empty[hidden] { display:none; }
 .upload-box-title { color:var(--accent-ink); font-weight:700; font-size:var(--fs-lg); }
 .upload-box-sub { color:var(--ink-3); font-size:var(--fs-base); margin-bottom:var(--sp-2); }
-.upload-box-actions { display:flex; gap:var(--sp-2); margin-top:var(--sp-1); }
+.upload-box-actions { display:flex; align-items:center; justify-content:center; gap:var(--sp-2); margin:var(--sp-1) auto 0; width:100%; }
 
-/* ── Inline upload status: compact "Uploaded" chip — filename shown via hover title / preview modal ── */
-.file-thumb { display:flex; flex-direction:column; gap:var(--sp-2); width:100%; }
+/* ── Inline upload status: compact "Uploaded" chip — filename shown via hover title / preview modal ──
+   Centered in the upload box (rather than stretched edge-to-edge) so it reads as a single focal
+   confirmation, matching the centered layout used elsewhere for attached-file previews. */
+.file-thumb { display:flex; flex-direction:column; align-items:center; gap:var(--sp-2); width:100%; }
+.file-thumb[hidden] { display:none; }
+.file-thumb-text { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2); font-size:var(--fs-sm); font-weight:600; text-align:center; }
 .file-thumb-card {
-  position:relative; width:100%; flex-shrink:0;
+  position:relative; width:auto; max-width:100%; flex-shrink:0; margin:0 auto;
   border:1px solid color-mix(in srgb,var(--st-good) 35%, var(--border));
   border-radius:var(--r-md);
   background-color:var(--st-good-bg); cursor:pointer;
-  display:flex; align-items:center; gap:var(--sp-3);
-  padding:var(--sp-3) var(--sp-4);
-  color:var(--st-good-ink); font-size:var(--fs-sm); text-align:left;
+  display:flex; align-items:center; justify-content:center; gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-5);
+  color:var(--st-good-ink); font-size:var(--fs-sm); text-align:center;
   transition:border-color var(--dur), box-shadow var(--dur);
 }
 .file-thumb-card:hover, .file-thumb-card:focus-visible { border-color:var(--st-good); box-shadow:var(--sh-2); outline:none; }
@@ -511,6 +516,24 @@ select.input, .form-group select {
 .preview-strip { display:flex; flex-direction:column; gap:var(--sp-3); width:100%; }
 .preview-strip img { max-width:100%; max-height:64vh; border-radius:var(--r-sm); margin:0 auto; }
 .preview-cap { font-size:var(--fs-sm); color:var(--ink-3); text-align:center; }
+
+/* ── Regional Trip summary (closing leg): "Trip Details" card ── */
+.trip-summary-card {
+  border:1px solid var(--border); border-radius:var(--r-lg);
+  background-color:var(--surface); padding:var(--sp-4); margin-bottom:var(--sp-2);
+}
+.trip-summary-heading { font-size:var(--fs-lg); font-weight:700; color:var(--accent-ink); margin:0 0 var(--sp-3); }
+.trip-summary-heading-spaced { margin-top:var(--sp-5); }
+.trip-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); align-items:start; }
+.trip-summary-item { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.trip-summary-item .form-group { margin:0; }
+.trip-summary-label { font-size:var(--fs-sm); color:var(--ink-3); }
+.trip-summary-value { font-size:var(--fs-md); font-weight:700; color:var(--accent-ink); overflow-wrap:anywhere; }
+.trip-summary-divider { height:1px; background-color:var(--border); margin:var(--sp-4) 0 var(--sp-3); }
+.trip-summary-card #wrap_routeInfo { margin:0; }
+@media (max-width:520px) {
+  .trip-summary-grid { grid-template-columns:1fr; }
+}
 
 /* ══════════════════════════════════════════════════════════════
    7. LOGIN
@@ -1555,12 +1578,12 @@ const EXPENSE_TYPES = {
         hint: "Photo of your vehicle's odometer at the start", required: true, stage: 'start' },
       { key: 'endLocation',     type: 'place',  label: 'End location', placeholder: 'Where did you arrive?', required: true, stage: 'end' },
       /* `startLocation` lives on the previous stage, so it is read back off the saved trip.
-         The driving distance between the two locations IS the billed distance — no manual odometer entry. */
-      { key: 'routeInfo',       type: 'route',  label: 'Trip distance', fromKey: 'startLocation', toKey: 'endLocation',
+         The driving distance between the two locations IS the billed distance — no manual odometer entry,
+         and no Amount field on this trip type: the trip summary is distance + meter photos only. */
+      { key: 'routeInfo',       type: 'route',  label: 'Total Distance', fromKey: 'startLocation', toKey: 'endLocation',
         stage: 'end', estimateOnly: true },
       { key: 'endMeterImage',   type: 'file',   label: 'End meter image', title: 'Upload end meter image',
         hint: 'Photo of the odometer at the end', required: true, stage: 'end' },
-      { key: 'amount',          type: 'number', label: 'Amount', money: true, required: true, min: 0.01, stage: 'end' },
       { key: 'remarks',         type: 'textarea', label: 'Remarks', placeholder: 'Enter remarks here', stage: 'end' },
     ]
   },
@@ -2306,7 +2329,10 @@ function renderForm(prefill) {
     : resubmitId ? 'Resubmit for approval'
     : 'Submit request';
   document.getElementById('formError').innerHTML = '';
-  document.getElementById('dynamicFields').innerHTML = visibleFields().map(f => fieldHtml(f, prefill)).join('');
+  const isRegionalTripSummary = selectedExpenseType === 'Regional Trip' && currentStage === 'end';
+  document.getElementById('dynamicFields').innerHTML = isRegionalTripSummary
+    ? regionalTripSummaryHtml(prefill)
+    : visibleFields().map(f => fieldHtml(f, prefill)).join('');
 
   visibleFields().forEach(f => {
     if (f.type === 'file') renderThumbs(f.key);
@@ -2316,6 +2342,46 @@ function renderForm(prefill) {
   bindDateLinks();
   bindDirtyWatch();
   initRouteFeature();          /* location autocomplete + automatic distance */
+}
+
+/* The trip record backing the closing leg of a Regional Trip — covers both
+   "end trip" (editingExpenseId) and "fix & resubmit" (resubmitId) flows. */
+function currentTripRecord() {
+  const id = editingExpenseId || resubmitId;
+  return id ? expenses.find(e => e.id === id) : null;
+}
+
+/* Regional Trip's closing stage renders as a read-back "trip summary" instead of a plain
+   stacked field list: a Trip Details card showing start location (read back from stage one),
+   end location to fill in, and the total distance once both are known — followed by the
+   end-meter-photo uploader and remarks. No Amount field, and no start-meter preview here;
+   the summary card is distance-focused, matching the reference layout. */
+function regionalTripSummaryHtml(prefill) {
+  const conf = typeConf('Regional Trip');
+  const byKey = key => conf.fields.find(f => f.key === key);
+  const trip = currentTripRecord();
+  const startLocation = (prefill && prefill.startLocation) || (trip && trip.data && trip.data.startLocation) || '';
+
+  return `
+    <div class="trip-summary-card">
+      <div class="trip-summary-heading">Trip Details</div>
+      <div class="trip-summary-grid">
+        <div class="trip-summary-item">
+          <div class="trip-summary-label">Start Location</div>
+          <div class="trip-summary-value">${esc(startLocation || '—')}</div>
+        </div>
+        <div class="trip-summary-item">
+          ${fieldHtml(byKey('endLocation'), prefill)}
+        </div>
+      </div>
+      <div class="trip-summary-divider"></div>
+      ${fieldHtml(byKey('routeInfo'), prefill)}
+    </div>
+
+    ${fieldHtml(byKey('endMeterImage'), prefill)}
+
+    ${fieldHtml(byKey('remarks'), prefill)}
+  `;
 }
 
 function fieldHtml(f, prefill) {
@@ -2688,16 +2754,13 @@ async function renderThumbs(key) {
   if (empty) empty.hidden = true;
   if (box)   box.classList.add('has-file');
 
-  /* Compact "Uploaded" status — no filename shown by default; hover (desktop) or tap
-     (opens the preview modal, which captions the filename) reveals which file it is. */
+  /* Plain filename text — no card/checkmark, since the peek (eye) button already
+     lets people view the attached file(s). */
   if (thumbs) {
     thumbs.hidden = false;
-    const label = list.length === 1 ? 'Uploaded' : `${list.length} files uploaded`;
+    const label = list.length === 1 ? list[0].name : `${list.length} files attached`;
     const titleAttr = list.map(f => f.name).join(', ');
-    thumbs.innerHTML = `<div class="file-thumb-card" role="button" tabindex="0"
-                   onclick="peekFiles('${esc(key)}')" title="${esc(titleAttr)}">
-                ${icon('i-check')}<span>${esc(label)}</span>
-              </div>`;
+    thumbs.innerHTML = `<span class="file-thumb-text" title="${esc(titleAttr)}">${esc(label)}</span>`;
   }
 }
 
@@ -3594,7 +3657,7 @@ function viewExpenseDetails(id) {
         <div class="banner-sub">Submitted by ${esc(e.employee)} · ${esc(formatDateTime(e.submittedDate || e.createdDate))}</div>
       </div>
       <div style="margin-left:auto;text-align:right;">
-        <div class="hero-figure">${esc(formatMoney(e.data.amount))}</div>
+        ${conf.fields.some(f => f.key === 'amount') ? `<div class="hero-figure">${esc(formatMoney(e.data.amount))}</div>` : ''}
         <div style="margin-top:4px;">${statusBadge(e.status)}</div>
       </div>
     </div>`;
